@@ -1,28 +1,47 @@
+![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.25+-blue)
+![Istio](https://img.shields.io/badge/Istio-v1.20+-purple)
+![AKS](https://img.shields.io/badge/AKS-Azure%20Kubernetes%20Service-brightgreen)
+
 # Resilient Microservices with Istio Service Mesh
 
 This project demonstrates how to build resilient microservices using Istio on Kubernetes. It covers core concepts such as retries, circuit breaking, traffic shaping, and observability using Istio's Bookinfo sample application.
 
+## 📘 Project Overview
+
+This project explores how service meshes like Istio enhance microservice resiliency. Using Istio's Bookinfo sample app, we demonstrate features such as retry logic, circuit breaking, fault injection, and real-time telemetry using observability dashboards. The goal is to show how modern service mesh capabilities reduce downtime and increase reliability in distributed systems.
+
 ## 🔧 Tools Used
 
-- Kubernetes (via Minikube)
+- Azure Kubernetes Service (AKS)
 - Istio
 - Istio Add-ons: Kiali, Grafana, Prometheus, Jaeger
 - Istio Bookinfo Sample App
+
+Bookinfo manifest adapted from:
+https://github.com/istio/istio/tree/release-1.20/samples/bookinfo/platform/kube
 
 ## 📦 Setup Instructions
 
 ### 1. Prerequisites
 
+- Azure CLI (`az`)
 - `kubectl` (v1.25+)
-- `minikube` (8 GB RAM recommended)
 - `istioctl` (v1.20+)
-- `docker`
+- Docker (for image builds if needed)
+- Azure Subscription with available credits
 
-### 2. Start Minikube
+### 2. Create an AKS Cluster
 
 ```bash
-minikube start --memory=8192 --cpus=4
-minikube tunnel
+# Create resource group
+az group create --name istio-rg --location eastus
+
+# Create AKS cluster
+az aks create --resource-group istio-rg --name istio-cluster \
+  --node-count 3 --enable-addons monitoring --generate-ssh-keys
+
+# Get AKS credentials
+az aks get-credentials --resource-group istio-rg --name istio-cluster
 ```
 
 ### 3. Install Istio
@@ -43,14 +62,14 @@ kubectl apply -f manifests/bookinfo.yaml
 kubectl apply -f manifests/gateway.yaml
 ```
 
-Access via:
+Get external IP:
 ```bash
 kubectl get svc istio-ingressgateway -n istio-system
 ```
 
-Or if using Minikube:
+Copy the `EXTERNAL-IP` and test the app:
 ```bash
-minikube service istio-ingressgateway -n istio-system
+http://<EXTERNAL-IP>/productpage
 ```
 
 ### 5. Apply Istio Features
@@ -67,8 +86,7 @@ kubectl apply -f manifests/traffic-split.yaml
 kubectl apply -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/addons
 ```
 
-Then open dashboards:
-
+Open dashboards:
 ```bash
 istioctl dashboard kiali
 istioctl dashboard jaeger
@@ -76,6 +94,8 @@ istioctl dashboard grafana
 ```
 
 ### 7. Simulate Failures
+
+The `failure-sim.sh` script simulates service-level failures by killing pods, blocking service responses, or injecting delays to test Istio's resiliency features.
 
 ```bash
 bash scripts/failure-sim.sh
@@ -88,6 +108,15 @@ https://github.com/istio/istio/tree/release-1.20/samples/addons/dashboards
 
 Use: `istio-service-dashboard.json`, `istio-workload-dashboard.json`
 
+## 🧹 Optional Cleanup
+
+```bash
+kubectl delete -f manifests/
+kubectl delete -f https://raw.githubusercontent.com/istio/istio/release-1.20/samples/addons
+istioctl uninstall --purge -y
+az group delete --name istio-rg --yes --no-wait
+```
+
 ## 👥 Authors
 
-Team Awesome: Member A, Member B, Member C, Member D
+Team Awesome: Abou-Assaly Daniel, Akinrinsola Ololade Modinat, Alkhlaf Rahaf, Chhabra Jaspreet Singh
