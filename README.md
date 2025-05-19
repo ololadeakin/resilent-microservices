@@ -32,9 +32,15 @@ https://github.com/istio/istio/tree/release-1.20/samples/bookinfo/platform/kube
 
 ### 2. Create an AKS Cluster
 
+---
+
+### Option A: Using Azure CLI (Recommended for Automation)
+
+#### Create an AKS Cluster
+
 ```bash
 # Create resource group
-az group create --name istio-rg --location eastus
+az group create --name istio-rg --location canadacentral
 
 # Create AKS cluster
 az aks create --resource-group istio-rg --name istio-cluster \
@@ -43,6 +49,34 @@ az aks create --resource-group istio-rg --name istio-cluster \
 # Get AKS credentials
 az aks get-credentials --resource-group istio-rg --name istio-cluster
 ```
+
+#### Install Istio
+
+```bash
+curl -L https://istio.io/downloadIstio | sh -
+cd istio-*/bin
+export PATH=$PWD:$PATH
+
+istioctl install --set profile=demo -y
+kubectl label namespace default istio-injection=enabled
+```
+
+---
+
+### Option B: Using Azure Portal (Dashboard UI)
+
+1. Go to [Azure Portal](https://portal.azure.com)
+2. Navigate to **Kubernetes Services > + Create**
+3. Set the following:
+   - **Resource Group**: `istio-rg`
+   - **Cluster Name**: `istio-cluster`
+   - **Region**: `Canada central`
+   - **Node Count**: 3
+   - **Enable Monitoring**: Yes (Azure Monitor for containers)
+4. Click **Review + Create** → **Create**
+5. After deployment, go to the cluster → Click **"Connect"** to get connection instructions
+6. Use **Cloud Shell** or local terminal for the Istio install:
+
 
 ### 3. Install Istio
 
